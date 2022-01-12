@@ -22,6 +22,8 @@ export default function App() {
         <Links />
       </head>
       <body>
+        <h1>My Habit Tracker</h1>
+
         <Outlet />
         <ScrollRestoration />
         <Scripts />

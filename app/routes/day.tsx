@@ -1,19 +1,20 @@
+import { Habit, TrackedHabit } from '@prisma/client'
 import { useLoaderData, redirect, LoaderFunction, ActionFunction } from 'remix'
-import { db } from '~/db/db.server'
+import {
+  getAllHabits,
+  getAllTrackedHabits,
+  saveTrackedHabit,
+} from '~/db/queries'
 
 type LoaderData = {
-  habits: Array<{ id: string; name: string }>
-  trackedHabits: Array<{ id: string; name: string; count: number }>
+  habits: Habit[]
+  trackedHabits: (TrackedHabit & { habit: Habit })[]
 }
 
 export const loader: LoaderFunction = async () => {
   const data: LoaderData = {
-    habits: await db.habit.findMany(),
-    trackedHabits: await db.trackedHabit.findMany({
-      include: {
-        habit: true,
-      },
-    }),
+    habits: await getAllHabits(),
+    trackedHabits: await getAllTrackedHabits(),
   }
   return data
 }
@@ -22,50 +23,13 @@ export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
   const habitId = form.get('habitId')
 
-  // we do this type check to be extra sure and to make TypeScript happy
-  // we'll explore validation next!
   if (typeof habitId !== 'string') {
     throw new Error(`Form not submitted correctly.`)
   }
 
-  // Check TrackedHabit already exists for the HabitId
-  const trackedHabit = await db.trackedHabit.findFirst({
-    where: {
-      habitId,
-    },
-  })
+  //TODO Input validation
 
-  if (!trackedHabit) {
-    await db.trackedHabit.create({
-      data: { habitId, date: new Date(), count: 1 },
-    })
-  } else {
-    await db.trackedHabit.update({
-      where: {
-        id: trackedHabit.id,
-      },
-      data: {
-        count: {
-          increment: 1,
-        },
-      },
-    })
-  }
-
-  //   await db.trackedHabit.upsert({
-  //     include: {
-  //       habit: true,
-  //     },
-  //     where: {
-  //       habitId: habitId,
-  //     },
-  //     update: {
-  //       count: {
-  //         increment: 1,
-  //       },
-  //     },
-  //     create: { habitId, date: new Date(), count: 1 },
-  //   })
+  await saveTrackedHabit(habitId)
 
   return redirect(`/day`)
 }
@@ -75,32 +39,48 @@ export default () => {
 
   return (
     <>
-      <h1>Today</h1>
+      <div style={{ display: 'flex' }}>
+        <div
+          style={{
+            padding: '10px',
+            marginRight: '10px',
+            border: '1px solid blue',
+          }}
+        >
+          <form method="post">
+            {data.habits.map((habit) => {
+              return (
+                <div style={{ margin: '10px' }} key={habit.id}>
+                  <button value={habit.id} name="habitId" type="submit">
+                    {habit.name}
+                  </button>
+                </div>
+              )
+            })}
+          </form>
+        </div>
 
-      <div>
-        <form method="post">
-          {data.habits.map((habit) => {
-            return (
-              <div key={habit.id}>
-                <button value={habit.id} name="habitId" type="submit">
-                  {habit.name}
-                </button>
-              </div>
-            )
-          })}
-        </form>
-      </div>
-
-      <div>
-        {data.trackedHabits.map((trackedHabit) => {
-          return (
-            <div key={trackedHabit.id}>
-              <button>
-                {trackedHabit.habit.name} ({trackedHabit.count})
-              </button>
-            </div>
-          )
-        })}
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ margin: '0', padding: '0' }}>Today</h2>
+          <div
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid blue',
+              textAlign: 'left',
+            }}
+          >
+            {data.trackedHabits.map((trackedHabit) => {
+              return (
+                <div style={{ margin: '10px' }} key={trackedHabit.id}>
+                  <button>
+                    {trackedHabit.habit.name} ({trackedHabit.count})
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </>
   )

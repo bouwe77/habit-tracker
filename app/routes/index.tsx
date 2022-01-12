@@ -1,7 +1,6 @@
-export default function Index() {
-  return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.4' }}>
-      <h1>My Habit Tracker</h1>
-    </div>
-  )
+import { redirect } from 'remix'
+import type { LoaderFunction } from 'remix'
+
+export const loader: LoaderFunction = async () => {
+  return redirect('/day')
 }
