@@ -12,16 +12,19 @@ export async function getAllTrackedHabits() {
   })
 }
 
-export async function saveTrackedHabit(habitId: string) {
+export async function saveTrackedHabit(habitId: string, date: Date) {
+  console.log(date)
+
   const trackedHabit = await db.trackedHabit.findFirst({
     where: {
       habitId,
+      date,
     },
   })
 
   if (!trackedHabit) {
     await db.trackedHabit.create({
-      data: { habitId, date: new Date(), count: 1 },
+      data: { habitId, date, count: 1 },
     })
   } else {
     await db.trackedHabit.update({
@@ -35,19 +38,4 @@ export async function saveTrackedHabit(habitId: string) {
       },
     })
   }
-
-  //   await db.trackedHabit.upsert({
-  //     include: {
-  //       habit: true,
-  //     },
-  //     where: {
-  //       habitId: habitId,
-  //     },
-  //     update: {
-  //       count: {
-  //         increment: 1,
-  //       },
-  //     },
-  //     create: { habitId, date: new Date(), count: 1 },
-  //   })
 }
