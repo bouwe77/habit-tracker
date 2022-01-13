@@ -22,4 +22,6 @@ model TrackedHabit {
   habit   Habit    @relation(fields: [habitId], references: [id])
   date    DateTime
   count   Int
+
+  @@unique([habitId, date])
 }
