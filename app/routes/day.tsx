@@ -1,5 +1,6 @@
 import { Habit, TrackedHabit } from '@prisma/client'
 import { useLoaderData, redirect, LoaderFunction, ActionFunction } from 'remix'
+import { getUtcDateNow } from '~/utils/dates'
 import {
   getAllHabits,
   getAllTrackedHabits,
@@ -29,7 +30,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   //TODO Input validation
 
-  await saveTrackedHabit(habitId)
+  await saveTrackedHabit(habitId, getUtcDateNow())
 
   return redirect(`/day`)
 }
