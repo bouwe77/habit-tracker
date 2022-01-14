@@ -4,8 +4,11 @@ export async function getAllHabits() {
   return db.habit.findMany()
 }
 
-export async function getAllTrackedHabits() {
+export async function getAllTrackedHabits(date: Date) {
   return db.trackedHabit.findMany({
+    where: {
+      date: date,
+    },
     include: {
       habit: true,
     },

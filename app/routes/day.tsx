@@ -1,6 +1,11 @@
 import { Habit, TrackedHabit } from '@prisma/client'
 import { useLoaderData, redirect, LoaderFunction, ActionFunction } from 'remix'
-import { getUtcDateNow } from '~/utils/dates'
+import {
+  formatDate,
+  getUtcDate,
+  getUtcDateNow,
+  isValidDate,
+} from '~/utils/dates'
 import {
   getAllHabits,
   getAllTrackedHabits,
@@ -11,13 +16,26 @@ import {
 type LoaderData = {
   habits: Habit[]
   trackedHabits: (TrackedHabit & { habit: Habit })[]
+  formattedDate: string
 }
 
-export const loader: LoaderFunction = async () => {
+export const loader: LoaderFunction = async ({ params }) => {
+  let day = params.date
+
+  let date = getUtcDateNow()
+
+  // Redirect to today if no or an invalid date is provided
+  if (!day || !isValidDate(day))
+    return redirect('/day/' + formatDate(new Date()))
+
+  date = getUtcDate(day)
+
   const data: LoaderData = {
+    formattedDate: formatDate(date),
     habits: await getAllHabits(),
-    trackedHabits: await getAllTrackedHabits(),
+    trackedHabits: await getAllTrackedHabits(date),
   }
+
   return data
 }
 
@@ -25,17 +43,22 @@ export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
   const what = form.get('what')
   const habitId = form.get('habitId')
+  const date = form.get('date')
 
-  if (typeof habitId !== 'string' || typeof what !== 'string') {
+  if (
+    typeof what !== 'string' ||
+    typeof habitId !== 'string' ||
+    typeof date !== 'string'
+  ) {
     throw new Error(`Form not submitted correctly.`)
   }
 
-  //TODO Input validation on format for habitId and removeHabitId...
+  //TODO Input validation...
 
-  if (what === 'add') await addTrackedHabit(habitId, getUtcDateNow())
-  else await removeTrackedHabit(habitId, getUtcDateNow())
+  if (what === 'add') await addTrackedHabit(habitId, getUtcDate(date))
+  else await removeTrackedHabit(habitId, getUtcDate(date))
 
-  return redirect(`/day`)
+  return redirect(`/day/${date}`)
 }
 
 export default () => {
@@ -51,8 +74,9 @@ export default () => {
             border: '1px solid blue',
           }}
         >
-          <form method="post">
+          <form method="post" action={`/day`}>
             <input type="hidden" name="what" value="add" />
+            <input type="hidden" name="date" value={data.formattedDate} />
             {data.habits.map((habit) => {
               return (
                 <div style={{ margin: '10px' }} key={habit.id}>
@@ -75,8 +99,9 @@ export default () => {
               textAlign: 'left',
             }}
           >
-            <form method="post">
+            <form method="post" action={`/day`}>
               <input type="hidden" name="what" value="remove" />
+              <input type="hidden" name="date" value={data.formattedDate} />
               {data.trackedHabits.map((trackedHabit) => {
                 return (
                   <div style={{ margin: '10px' }} key={trackedHabit.id}>
