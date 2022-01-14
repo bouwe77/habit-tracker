@@ -2,8 +2,6 @@
 
 ## TO DO
 
-- Decrement TrackedHabit by clicking on it. If count 1: Delete the TrackedHabit record
-
 - Add a "/day/$date" route (example: "/day/2022-01-12")
 
 - Save TrackedHabit for the current day
@@ -30,18 +28,12 @@
 
 ## DONE
 
+- Decrement TrackedHabit by clicking on it. If count 1: Delete the TrackedHabit record
 - Create new Remix app
-
 - Setup Prisma + Sqlite
-
 - Seed script for habits
-
 - Add a "/day" route
-
 - List all habits from the database
-
 - List all tracked habits for today
-
 - Click on Habit to insert a TrackedHabit for today
-
 - When a TrackedHabit was already inserted: update it (upsert)

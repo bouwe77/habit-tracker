@@ -4,7 +4,8 @@ import { getUtcDateNow } from '~/utils/dates'
 import {
   getAllHabits,
   getAllTrackedHabits,
-  saveTrackedHabit,
+  addTrackedHabit,
+  removeTrackedHabit,
 } from '~/db/queries'
 
 type LoaderData = {
@@ -22,15 +23,17 @@ export const loader: LoaderFunction = async () => {
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
+  const what = form.get('what')
   const habitId = form.get('habitId')
 
-  if (typeof habitId !== 'string') {
+  if (typeof habitId !== 'string' || typeof what !== 'string') {
     throw new Error(`Form not submitted correctly.`)
   }
 
-  //TODO Input validation
+  //TODO Input validation on format for habitId and removeHabitId...
 
-  await saveTrackedHabit(habitId, getUtcDateNow())
+  if (what === 'add') await addTrackedHabit(habitId, getUtcDateNow())
+  else await removeTrackedHabit(habitId, getUtcDateNow())
 
   return redirect(`/day`)
 }
@@ -49,6 +52,7 @@ export default () => {
           }}
         >
           <form method="post">
+            <input type="hidden" name="what" value="add" />
             {data.habits.map((habit) => {
               return (
                 <div style={{ margin: '10px' }} key={habit.id}>
@@ -71,15 +75,22 @@ export default () => {
               textAlign: 'left',
             }}
           >
-            {data.trackedHabits.map((trackedHabit) => {
-              return (
-                <div style={{ margin: '10px' }} key={trackedHabit.id}>
-                  <button>
-                    {trackedHabit.habit.name} ({trackedHabit.count})
-                  </button>
-                </div>
-              )
-            })}
+            <form method="post">
+              <input type="hidden" name="what" value="remove" />
+              {data.trackedHabits.map((trackedHabit) => {
+                return (
+                  <div style={{ margin: '10px' }} key={trackedHabit.id}>
+                    <button
+                      value={trackedHabit.habit.id}
+                      name="habitId"
+                      type="submit"
+                    >
+                      {trackedHabit.habit.name} ({trackedHabit.count})
+                    </button>
+                  </div>
+                )
+              })}
+            </form>
           </div>
         </div>
       </div>

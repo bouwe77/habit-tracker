@@ -12,9 +12,7 @@ export async function getAllTrackedHabits() {
   })
 }
 
-export async function saveTrackedHabit(habitId: string, date: Date) {
-  console.log(date)
-
+export async function addTrackedHabit(habitId: string, date: Date) {
   const trackedHabit = await db.trackedHabit.findFirst({
     where: {
       habitId,
@@ -34,6 +32,34 @@ export async function saveTrackedHabit(habitId: string, date: Date) {
       data: {
         count: {
           increment: 1,
+        },
+      },
+    })
+  }
+}
+
+export async function removeTrackedHabit(habitId: string, date: Date) {
+  const trackedHabit = await db.trackedHabit.findFirst({
+    where: {
+      habitId,
+      date,
+    },
+  })
+
+  if (!trackedHabit) return
+
+  if (trackedHabit.count === 1) {
+    await db.trackedHabit.delete({
+      where: { id: trackedHabit.id },
+    })
+  } else {
+    await db.trackedHabit.update({
+      where: {
+        id: trackedHabit.id,
+      },
+      data: {
+        count: {
+          decrement: 1,
         },
       },
     })
