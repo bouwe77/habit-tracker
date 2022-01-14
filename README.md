@@ -2,10 +2,6 @@
 
 ## TO DO
 
-- Add a "/day/$date" route (example: "/day/2022-01-12")
-
-- Save TrackedHabit for the current day
-
 - Navigate through days: prev/next
 
 - Button "Today" which links to the "/day" route
@@ -28,6 +24,8 @@
 
 ## DONE
 
+- Add a "/day/$date" route (example: "/day/2022-01-12")
+- Save TrackedHabit for the current day
 - Decrement TrackedHabit by clicking on it. If count 1: Delete the TrackedHabit record
 - Create new Remix app
 - Setup Prisma + Sqlite
