@@ -1,5 +1,11 @@
 import { Habit, TrackedHabit } from '@prisma/client'
-import { useLoaderData, redirect, LoaderFunction, ActionFunction } from 'remix'
+import {
+  useLoaderData,
+  redirect,
+  LoaderFunction,
+  ActionFunction,
+  Link,
+} from 'remix'
 import {
   formatDate,
   getUtcDate,
@@ -17,23 +23,30 @@ type LoaderData = {
   habits: Habit[]
   trackedHabits: (TrackedHabit & { habit: Habit })[]
   formattedDate: string
+  previousDate: string
+  nextDate: string
 }
 
 export const loader: LoaderFunction = async ({ params }) => {
-  let day = params.date
-
-  let date = getUtcDateNow()
+  let day = params.day
 
   // Redirect to today if no or an invalid date is provided
   if (!day || !isValidDate(day))
     return redirect('/day/' + formatDate(new Date()))
 
-  date = getUtcDate(day)
+  const date = getUtcDate(day)
+
+  const previousDate = new Date(day)
+  previousDate.setDate(date.getDate() - 1)
+  const nextDate = new Date(day)
+  nextDate.setDate(date.getDate() + 1)
 
   const data: LoaderData = {
-    formattedDate: formatDate(date),
     habits: await getAllHabits(),
     trackedHabits: await getAllTrackedHabits(date),
+    formattedDate: formatDate(date),
+    previousDate: formatDate(previousDate),
+    nextDate: formatDate(nextDate),
   }
 
   return data
@@ -90,7 +103,9 @@ export default () => {
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ margin: '0', padding: '0' }}>Today</h2>
+          <Link to={`/day/${data.previousDate}`}>prev</Link>
+          <h2 style={{ margin: '0', padding: '0' }}>{data.formattedDate}</h2>
+          <Link to={`/day/${data.nextDate}`}>next</Link>
           <div
             style={{
               width: '100%',
